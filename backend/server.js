@@ -16,7 +16,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 🔥 ROOT ROUTE (MOST IMPORTANT)
+// 🔥 ROOT ROUTE
 app.get("/", (req, res) => {
   res.status(200).send("API Running 🚀");
 });
@@ -27,14 +27,17 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
 
-// start server FIRST
+// 🔥 IMPORTANT: DB connect FIRST
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// DB connect later (non-blocking)
 connectDB()
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
+  .then(() => {
+    console.log("MongoDB Connected");
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("DB Error:", err);
+  });
