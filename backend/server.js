@@ -18,12 +18,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin:[
-        "http://localhost:5173",
-        "http://localhost:5174",
-    ] ,
-    
-      
+    origin: "*", // 🔥 Railway ke liye open rakho (baad me restrict kar sakte ho)
     credentials: true,
   })
 );
@@ -39,12 +34,14 @@ app.get("/", (req, res) => {
   res.send("API Running 🚀");
 });
 
-// start server after DB
+// ✅ IMPORTANT: pehle server start karo
 const PORT = process.env.PORT || 8000;
 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+// ✅ DB connect baad me karo
 connectDB()
-  .then(() => {
-    console.log("MongoDB Connected");
-    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-  })
-  .catch((err) => console.log(err));
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log("DB Error:", err));
