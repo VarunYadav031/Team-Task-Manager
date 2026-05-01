@@ -16,9 +16,10 @@ const app = express();
 // middleware
 app.use(express.json());
 
+// 🔥 CORS (Railway + frontend access)
 app.use(
   cors({
-    origin: "*", // 🔥 Railway ke liye open rakho (baad me restrict kar sakte ho)
+    origin: "*",
     credentials: true,
   })
 );
@@ -29,19 +30,25 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
 
-// health check
+// ✅ root route (important)
 app.get("/", (req, res) => {
-  res.send("API Running 🚀");
+  res.status(200).send("Backend is working 🚀");
 });
 
-// ✅ IMPORTANT: pehle server start karo
+// ✅ test route (debugging)
+app.get("/test", (req, res) => {
+  res.send("Test route working ✅");
+});
+
+// ✅ PORT (Railway uses process.env.PORT)
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
+// ✅ server start (IMPORTANT: 0.0.0.0 binding)
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// ✅ DB connect baad me karo
+// ✅ DB connect (after server start)
 connectDB()
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("DB Error:", err));
