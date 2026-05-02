@@ -38,10 +38,10 @@ if (process.env.NODE_ENV === "production") {
   // Serve static files from the frontend build directory
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
   
-  // For any other route, serve index.html (SPA routing)
+  // For any other route (except API routes), serve index.html (SPA routing)
   // Catch-all route for SPA - must be after static middleware and API routes
   // Use regex route to avoid path-to-regexp issue with "*"
-  app.get(/.*/, (req, res) => {
+  app.get(/^(?!\/api\/).*/, (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
   });
 } else {
