@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 const THEME_COLORS = {
   blue: "#6B5FE4",
@@ -122,37 +122,30 @@ export default function AdminDashboard() {
 
   const fetchProjects = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/projects", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/projects");
       setProjects(res.data);
     } catch (err) { console.log(err); }
   };
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/users");
       setUsers(res.data);
     } catch (err) { console.log(err); }
   };
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/tasks", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/tasks");
       setTasks(res.data);
     } catch (err) { console.log(err); }
   };
 
   const createProject = async () => {
     try {
-      await axios.post(
-        "http://localhost:8000/api/projects",
-        { name: projectName, theme: projectTheme },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.post(
+        "/projects",
+        { name: projectName, theme: projectTheme }
       );
       setProjectName("");
       fetchProjects();
@@ -162,9 +155,7 @@ export default function AdminDashboard() {
 
   const assignTask = async () => {
     try {
-      await axios.post("http://localhost:8000/api/tasks", taskForm, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post("/tasks", taskForm);
       setTaskForm({ title: "", assignedTo: "", project: "" });
       fetchTasks();
       showToast("Task assigned successfully!");
@@ -181,10 +172,9 @@ export default function AdminDashboard() {
       if (userForm.password.length < 8) return showToast("Password must be at least 8 characters.");
       if (!["admin", "member"].includes(userForm.role)) return showToast("Select a valid role.");
 
-      await axios.post(
-        "http://localhost:8000/api/users",
-        { name, email, password: userForm.password, role: userForm.role },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.post(
+        "/users",
+        { name, email, password: userForm.password, role: userForm.role }
       );
       setUserForm({ name: "", email: "", password: "", role: "member" });
       fetchUsers();
@@ -194,9 +184,7 @@ export default function AdminDashboard() {
 
   const assignTeam = async () => {
     try {
-      await axios.put("http://localhost:8000/api/projects/assign-team", teamForm, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.put("/projects/assign-team", teamForm);
       setTeamForm({ projectId: "", users: [] });
       fetchProjects();
       showToast("Team assigned successfully!");
@@ -205,10 +193,7 @@ export default function AdminDashboard() {
 
   const getTracking = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:8000/api/projects/tracking/${selectedProject}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.get(`/projects/tracking/${selectedProject}`);
       setTracking(res.data);
     } catch (err) { showToast("Failed to load tracking data."); }
   };
@@ -263,10 +248,9 @@ export default function AdminDashboard() {
     if (theme === null) return;
 
     try {
-      await axios.put(
-        `http://localhost:8000/api/projects/${project._id}`,
-        { name, theme },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/projects/${project._id}`,
+        { name, theme }
       );
       fetchProjects();
       showToast("Project updated.");
@@ -277,9 +261,7 @@ export default function AdminDashboard() {
     if (!window.confirm(`Delete project "${project.name}" and its tasks?`)) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/projects/${project._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/projects/${project._id}`);
       fetchProjects();
       fetchTasks();
       showToast("Project deleted.");
@@ -295,10 +277,9 @@ export default function AdminDashboard() {
     if (role === null) return;
 
     try {
-      await axios.put(
-        `http://localhost:8000/api/users/${user._id}`,
-        { name, email, role },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/users/${user._id}`,
+        { name, email, role }
       );
       fetchUsers();
       fetchProjects();
@@ -311,9 +292,7 @@ export default function AdminDashboard() {
     if (!window.confirm(`Delete user "${user.name}"?`)) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/users/${user._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/users/${user._id}`);
       fetchUsers();
       showToast("User deleted.");
     } catch (err) { showToast(err.response?.data?.msg || "Failed to delete user."); }
@@ -326,10 +305,9 @@ export default function AdminDashboard() {
     if (description === null) return;
 
     try {
-      await axios.put(
-        `http://localhost:8000/api/tasks/${task._id}`,
-        { title, description },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/tasks/${task._id}`,
+        { title, description }
       );
       fetchTasks();
       showToast("Task updated.");
@@ -340,9 +318,7 @@ export default function AdminDashboard() {
     if (!window.confirm(`Delete task "${task.title}"?`)) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/tasks/${task._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/tasks/${task._id}`);
       fetchTasks();
       showToast("Task deleted.");
     } catch (err) { showToast("Failed to delete task."); }

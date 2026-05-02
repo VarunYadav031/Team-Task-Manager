@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 export default function AssignTeam() {
   const [projects, setProjects] = useState([]);
@@ -15,13 +15,8 @@ export default function AssignTeam() {
 
   const fetchData = async () => {
     try {
-      const p = await axios.get("http://localhost:8000/api/projects", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const u = await axios.get("http://localhost:8000/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const p = await api.get("/projects");
+      const u = await api.get("/users");
 
       setProjects(p.data);
       setUsers(u.data);
@@ -32,14 +27,11 @@ export default function AssignTeam() {
 
   const handleAssign = async () => {
     try {
-      await axios.put(
-        "http://localhost:8000/api/projects/assign-team",
+      await api.put(
+        "/projects/assign-team",
         {
           projectId,
           users: selectedUsers,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
         }
       );
       fetchData();

@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
-
-const API = "http://localhost:8000/api";
+import api from "../api/axios";
 
 const statusConfig = {
   todo: { label: "To Do", bg: "#FFF7ED", color: "#D97706" },
@@ -82,10 +80,9 @@ export default function UserDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const headers = { Authorization: `Bearer ${token}` };
       const [taskRes, projectRes] = await Promise.all([
-        axios.get(`${API}/tasks`, { headers }),
-        axios.get(`${API}/projects`, { headers }),
+        api.get("/tasks"),
+        api.get("/projects"),
       ]);
       setTasks(taskRes.data);
       setProjects(projectRes.data);
@@ -99,10 +96,9 @@ export default function UserDashboard() {
 
   const updateProgress = async (id, progress) => {
     try {
-      await axios.put(
-        `${API}/tasks/${id}`,
-        { progress },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/tasks/${id}`,
+        { progress }
       );
       fetchDashboardData();
       showToast(progress === 100 ? "Task marked as done." : `Progress updated to ${progress}%`);
@@ -117,10 +113,9 @@ export default function UserDashboard() {
     if (description === null) return;
 
     try {
-      await axios.put(
-        `${API}/tasks/${task._id}`,
-        { description },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/tasks/${task._id}`,
+        { description }
       );
       fetchDashboardData();
       showToast("Description updated.");
@@ -143,10 +138,9 @@ export default function UserDashboard() {
         return showToast("New password must be at least 8 characters.");
       }
 
-      await axios.put(
-        `${API}/auth/change-password`,
-        passwordForm,
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/auth/change-password`,
+        passwordForm
       );
 
       setPasswordForm({ currentPassword: "", newPassword: "" });
