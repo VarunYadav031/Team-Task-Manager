@@ -33,6 +33,12 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
 
+app.get("/api/ping", (req, res) => {
+  res.json({ status: "ok", env: process.env.NODE_ENV || "development" });
+});
+
+console.log("Mounted API routes: /api/auth, /api/projects, /api/tasks, /api/users, /api/ping");
+
 // Serve static files from frontend build in production
 if (process.env.NODE_ENV === "production") {
   // Serve static files from the frontend build directory
