@@ -1,7 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
-
-const API = "http://localhost:8000/api";
+import api from "../api/axios";
 
 export default function AuthPage() {
   const [forgotMode, setForgotMode] = useState(false);
@@ -25,7 +23,7 @@ export default function AuthPage() {
     setMessage("");
 
     try {
-      const res = await axios.post(`${API}/auth/login`, form);
+      const res = await api.post("/auth/login", form);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       window.location.href = res.data.user.role === "admin" ? "/admin" : "/user";
@@ -46,7 +44,7 @@ export default function AuthPage() {
     setMessage("");
 
     try {
-      const res = await axios.post(`${API}/auth/forgot-password`, {
+      const res = await api.post("/auth/forgot-password", {
         email: form.email,
       });
       setResetCode(res.data.resetToken || "");
@@ -68,7 +66,7 @@ export default function AuthPage() {
     setMessage("");
 
     try {
-      await axios.post(`${API}/auth/reset-password`, {
+      await api.post("/auth/reset-password", {
         token: resetCode,
         password: newPassword,
       });

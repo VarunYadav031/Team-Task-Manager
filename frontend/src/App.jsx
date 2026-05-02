@@ -3,6 +3,8 @@ import AuthPage from "./pages/AuthPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 
+// Cache bust: Ensure fresh build with correct API URL
+
 const ProtectedRoute = ({ element, allowedRole }) => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");

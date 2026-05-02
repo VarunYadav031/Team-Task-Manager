@@ -64,6 +64,8 @@ JWT_SECRET=your_secret_key
 
 > Note: Do not use actual credentials in public repositories.
 
+For the frontend, copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_URL` to your backend API URL (e.g., `http://localhost:8000/api` for local development).
+
 ---
 
 ### 4. Run the project
@@ -75,6 +77,43 @@ node server.js
 **Frontend:**
 cd frontend
 npm run dev
+
+---
+
+## 🚀 Deploy on Railway
+
+### Backend Deployment
+
+1. **Install Railway CLI** (optional) or use the web dashboard.
+2. **Create a new Railway project** and link your GitHub repository.
+3. **Add environment variables** in Railway:
+   - `PORT` (optional, Railway assigns automatically)
+   - `MONGO_URI` (your MongoDB connection string)
+   - `JWT_SECRET` (a strong secret for JWT signing)
+4. **Deploy**: Railway will automatically detect the `railway.json` configuration and deploy the backend.
+5. **Get the backend URL** (e.g., `https://your-backend-service.up.railway.app`).
+
+### Frontend Deployment
+
+1. **Set the API URL**: In Railway, add environment variable `VITE_API_URL` pointing to your deployed backend URL (e.g., `https://your-backend-service.up.railway.app/api`).
+2. **Deploy as a static site**:
+   - Railway can serve the built frontend as a static site. You can use the "Static Files" service.
+   - Alternatively, deploy using Vercel, Netlify, or Railway's Node.js service (with a simple server).
+3. **Build command**: `npm run build`
+4. **Output directory**: `dist`
+
+### Using Railway's Multi‑Service Setup
+
+If you want to deploy both backend and frontend as separate services within the same Railway project:
+
+- Create a `railway.toml` file (optional) or use the web interface to add two services.
+- Backend service: root directory `backend`, start command `npm start`.
+- Frontend service: root directory `frontend`, build command `npm run build`, start command `npm run preview` (or use static serving).
+
+### Post‑Deployment
+
+- Update the **Live Demo** link in this README with your frontend URL.
+- Ensure CORS is configured correctly (backend already allows all origins with `origin: "*"`).
 
 ---
 
