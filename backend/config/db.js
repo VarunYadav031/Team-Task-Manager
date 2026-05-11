@@ -5,7 +5,7 @@ export const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB Connected");
   } catch (err) {
-    console.log("DB Error:", err.message);
-    // ❌ process.exit हटाओ (Railway crash करता है)
+    console.error("DB Error:", err.message);
+    throw err;
   }
 };

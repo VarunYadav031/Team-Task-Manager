@@ -12,12 +12,30 @@ const sanitizeUser = (user) => ({
   role: user.role,
 });
 
-const validateUserInput = ({ name, email, password, role }, allowAdminRole = false) => {
-  if (!name || name.trim().length < 2) return "Name must be at least 2 characters";
-  if (!email || !emailRegex.test(email)) return "Valid email is required";
-  if (!password || password.length < 8) return "Password must be at least 8 characters";
-  if (role && !["admin", "member"].includes(role)) return "Invalid role";
-  if (!allowAdminRole && role === "admin") return "Admin role cannot be created from signup";
+const validateUserInput = (
+  { name, email, password, role },
+  allowAdminRole = false
+) => {
+  if (!name || name.trim().length < 2) {
+    return "Name must be at least 2 characters";
+  }
+
+  if (!email || !emailRegex.test(email)) {
+    return "Valid email is required";
+  }
+
+  if (!password || password.length < 8) {
+    return "Password must be at least 8 characters";
+  }
+
+  if (role && !["admin", "member"].includes(role)) {
+    return "Invalid role";
+  }
+
+  if (!allowAdminRole && role === "admin") {
+    return "Admin role cannot be created from signup";
+  }
+
   return null;
 };
 
@@ -25,17 +43,29 @@ const validateUserInput = ({ name, email, password, role }, allowAdminRole = fal
 export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    const error = validateUserInput({ name, email, password, role }, false);
 
-    if (error) return res.status(400).json({ msg: error });
+    const error = validateUserInput(
+      { name, email, password, role },
+      false
+    );
 
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ msg: "User exists" });
+    if (error) {
+      return res.status(400).json({ msg: error });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const exists = await User.findOne({ email: normalizedEmail });
+
+    if (exists) {
+      return res.status(400).json({ msg: "User exists" });
+    }
 
     const hashed = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
       password: hashed,
       role: "member",
     });
@@ -51,18 +81,32 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email: email?.trim().toLowerCase() });
-    if (!user) return res.status(404).json({ msg: "User not found" });
+    const user = await User.findOne({
+      email: email?.trim().toLowerCase(),
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Wrong password" });
+
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Wrong password" });
+    }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      {
+        id: user._id,
+        role: user.role,
+      },
       process.env.JWT_SECRET
     );
 
-    res.json({ token, user: sanitizeUser(user) });
+    res.json({
+      token,
+      user: sanitizeUser(user),
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -74,17 +118,26 @@ export const forgotPassword = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
 
     if (!email || !emailRegex.test(email)) {
-      return res.status(400).json({ msg: "Valid email is required" });
+      return res.status(400).json({
+        msg: "Valid email is required",
+      });
     }
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "User not found",
+      });
+    }
 
     const resetToken = crypto.randomBytes(20).toString("hex");
+
     user.resetPasswordToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
+
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
 
     await user.save();
@@ -94,7 +147,9 @@ export const forgotPassword = async (req, res) => {
       resetToken,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
@@ -103,18 +158,35 @@ export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
 
-    if (!token) return res.status(400).json({ msg: "Reset code is required" });
-    if (!password || password.length < 8) {
-      return res.status(400).json({ msg: "Password must be at least 8 characters" });
+    if (!token) {
+      return res.status(400).json({
+        msg: "Reset code is required",
+      });
     }
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    if (!password || password.length < 8) {
+      return res.status(400).json({
+        msg: "Password must be at least 8 characters",
+      });
+    }
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
+      resetPasswordExpires: {
+        $gt: Date.now(),
+      },
     });
 
-    if (!user) return res.status(400).json({ msg: "Reset code is invalid or expired" });
+    if (!user) {
+      return res.status(400).json({
+        msg: "Reset code is invalid or expired",
+      });
+    }
 
     user.password = await bcrypt.hash(password, 10);
     user.resetPasswordToken = undefined;
@@ -122,30 +194,45 @@ export const resetPassword = async (req, res) => {
 
     await user.save();
 
-    res.json({ msg: "Password reset successfully. Please sign in." });
+    res.json({
+      msg: "Password reset successfully. Please sign in.",
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
-// ✅ GET PROFILE (NEW)
-// CHANGE PASSWORD FROM LOGGED-IN ACCOUNT
+// CHANGE PASSWORD
 export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword) {
-      return res.status(400).json({ msg: "Current password is required" });
+      return res.status(400).json({
+        msg: "Current password is required",
+      });
     }
 
     if (!newPassword || newPassword.length < 8) {
-      return res.status(400).json({ msg: "New password must be at least 8 characters" });
+      return res.status(400).json({
+        msg: "New password must be at least 8 characters",
+      });
     }
 
     const user = await User.findById(req.user._id);
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
 
-    if (!isMatch) return res.status(400).json({ msg: "Current password is wrong" });
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        msg: "Current password is wrong",
+      });
+    }
 
     user.password = await bcrypt.hash(newPassword, 10);
     user.resetPasswordToken = undefined;
@@ -153,12 +240,17 @@ export const changePassword = async (req, res) => {
 
     await user.save();
 
-    res.json({ msg: "Password changed successfully" });
+    res.json({
+      msg: "Password changed successfully",
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
+// GET PROFILE
 export const getProfile = async (req, res) => {
   try {
     res.json({
@@ -168,6 +260,8 @@ export const getProfile = async (req, res) => {
       role: req.user.role,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
